@@ -1,0 +1,84 @@
+{% extends 'ricoveri/base.html' %}
+
+{% block title %}Cittadini — Servizio Sanitario{% endblock %}
+
+{% block content %}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <div>
+    <h1 class="h3 mb-1">Elenco Cittadini</h1>
+    <p class="text-muted mb-0">
+      Totale risultati: {{ count }}
+    </p>
+  </div>
+</div>
+
+<div class="card shadow-sm border-0 mb-4">
+  <div class="card-body">
+    <form method="get" class="row g-2">
+      <div class="col">
+        <input
+          type="text"
+          name="q"
+          value="{{ query }}"
+          class="form-control"
+          placeholder="Nome, cognome, CSSN, luogo o indirizzo..."
+        >
+      </div>
+
+      <div class="col-auto">
+        <button type="submit" class="btn btn-success">
+          Cerca
+        </button>
+      </div>
+
+      <div class="col-auto">
+        <a href="{% url 'cittadini_list' %}" class="btn btn-outline-secondary">
+          Reset
+        </a>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="card shadow-sm border-0">
+  <div class="table-responsive">
+    <table class="table table-hover align-middle mb-0">
+      <thead class="table-success">
+        <tr>
+          <th>CSSN</th>
+          <th>Cognome</th>
+          <th>Nome</th>
+          <th>Data nascita</th>
+          <th>Luogo nascita</th>
+          <th>Indirizzo</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        {% for cittadino in cittadini %}
+          <tr>
+            <td class="font-monospace text-success">
+              {{ cittadino.CSSN }}
+            </td>
+            <td>
+              <strong>{{ cittadino.cognome }}</strong>
+            </td>
+            <td>{{ cittadino.nome }}</td>
+            <td>{{ cittadino.dataNascita|date:"d/m/Y" }}</td>
+            <td>{{ cittadino.luogoNascita }}</td>
+            <td>{{ cittadino.indirizzo }}</td>
+          </tr>
+        {% empty %}
+          <tr>
+            <td colspan="6" class="text-center text-muted py-4">
+              Nessun cittadino trovato.
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{% endblock %}

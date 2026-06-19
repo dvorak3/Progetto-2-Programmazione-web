@@ -1,15 +1,12 @@
 from django.db import models
 
-# Create your models here.
-from django.db import models
-
 
 class Cittadino(models.Model):
-    cssn = models.CharField(max_length=16, primary_key=True)
+    CSSN = models.CharField(max_length=16, primary_key=True)
     nome = models.CharField(max_length=100)
     cognome = models.CharField(max_length=100)
-    data_nascita = models.DateField()
-    luogo_nascita = models.CharField(max_length=100)
+    dataNascita = models.DateField()
+    luogoNascita = models.CharField(max_length=100)
     indirizzo = models.CharField(max_length=255)
 
     def __str__(self):
@@ -17,11 +14,11 @@ class Cittadino(models.Model):
 
 
 class Ospedale(models.Model):
-    cod_ospedale = models.CharField(max_length=10, primary_key=True)
+    codOspedale = models.CharField(max_length=10, primary_key=True)
     nome = models.CharField(max_length=150)
     citta = models.CharField(max_length=100)
     indirizzo = models.CharField(max_length=255)
-    dir_sanitario = models.CharField(max_length=16)
+    dirSanitario = models.CharField(max_length=16)
     latitudine = models.DecimalField(max_digits=9, decimal_places=6)
     longitudine = models.DecimalField(max_digits=9, decimal_places=6)
 
@@ -30,22 +27,73 @@ class Ospedale(models.Model):
 
 
 class Patologia(models.Model):
-    cod_patologia = models.CharField(max_length=10, primary_key=True)
+    codPatologia = models.CharField(max_length=10, primary_key=True)
     nome = models.CharField(max_length=150)
-    descrizione = models.TextField(blank=True)
+    livello_rischio = models.CharField(max_length=50)
 
     def __str__(self):
         return self.nome
 
 
-class Ricovero(models.Model):
-    cod_ricovero = models.CharField(max_length=10, primary_key=True)
-    cittadino = models.ForeignKey(Cittadino, on_delete=models.CASCADE)
-    ospedale = models.ForeignKey(Ospedale, on_delete=models.CASCADE)
-    data_inizio = models.DateField()
-    data_fine = models.DateField(null=True, blank=True)
-    motivo = models.CharField(max_length=255, blank=True)
-    patologie = models.ManyToManyField(Patologia, blank=True)
+class PatologiaCronica(models.Model):
+    patologia = models.OneToOneField(
+        Patologia,
+        on_delete=models.CASCADE,
+        primary_key=True,
+        db_column='codPatologia'
+    )
 
     def __str__(self):
-        return f"{self.cod_ricovero} - {self.cittadino}"
+        return f"Cronica - {self.patologia.nome}"
+
+
+class PatologiaMortale(models.Model):
+    patologia = models.OneToOneField(
+        Patologia,
+        on_delete=models.CASCADE,
+        primary_key=True,
+        db_column='codPatologia'
+    )
+
+    def __str__(self):
+        return f"Mortale - {self.patologia.nome}"
+
+
+class Ricovero(models.Model):
+    codRicovero = models.CharField(max_length=10, primary_key=True)
+    ospedale = models.ForeignKey(
+        Ospedale,
+        on_delete=models.CASCADE,
+        db_column='codOspedale'
+    )
+    cittadino = models.ForeignKey(
+        Cittadino,
+        on_delete=models.CASCADE,
+        db_column='CSSN'
+    )
+    data = models.DateField()
+    durata = models.DecimalField(max_digits=8, decimal_places=2)
+    diagnosi = models.CharField(max_length=255)
+    costo = models.DecimalField(max_digits=10, decimal_places=2)
+
+    def __str__(self):
+        return f"{self.codRicovero} - {self.cittadino}"
+
+
+class PatologiaRicovero(models.Model):
+    ricovero = models.ForeignKey(
+        Ricovero,
+        on_delete=models.CASCADE,
+        db_column='codRicovero'
+    )
+    patologia = models.ForeignKey(
+        Patologia,
+        on_delete=models.CASCADE,
+        db_column='codPatologia'
+    )
+
+    class Meta:
+        unique_together = ('ricovero', 'patologia')
+
+    def __str__(self):
+        return f"{self.ricovero.codRicovero} - {self.patologia.nome}"
